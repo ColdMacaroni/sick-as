@@ -1,0 +1,20 @@
+# Copies the value one to memory address 1
+set 1 -> m1
+
+# Increase memory address 1 by one
+add m1,1 -> m1
+add m1, 1 -> m1
+
+# Decreases m1 by 1
+sub m1, 1 -> m1
+
+# Prints out the value as ascii
+out m2
+
+# Prints out the value as a number
+num m2
+
+# Character in
+cin -> m5
+# Number in
+nin -> m6
