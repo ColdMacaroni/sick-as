@@ -1,0 +1,26 @@
+out 97  # 'a'
+out 58  # ':'
+out 32  # ' '
+nin -> m1
+
+
+out 98  # 'b'
+out 58  # ':'
+out 32  # ' '
+nin -> m2
+
+out 97  # 'a'
+
+xor m1, m2 -> m10
+
+fwd 3, m10
+out 33  # '!'   # 1
+
+fwd 2, 0        # 2
+out 61  # '='   # 3  1
+
+out 61  # '='   #    2
+
+out 98  # 'b'
+out 10  # '\n'
+bye 0

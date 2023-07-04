@@ -1,0 +1,69 @@
+# Sets memory 1 to address 1
+set 1 -> m1
+
+# Add 1 and 2, save to address 2
+add 1, 2 -> m2
+
+# Add 10 and 7, save to address 3
+sub 10, 7 -> m3
+
+# Print A
+out 65
+out 10
+# Print 64
+num 64
+out 10
+
+# Print value in address 65 as a char
+out m65
+# Print value in address 64 as a number
+num m64
+
+# Take in a character from stdin, save to address 4
+cin -> m4
+# Get rid of the newline as well
+cin -> m254
+
+# Take in a number from stdin, save to address 5
+nin -> m5
+
+# Go back 7 instructions if address 5 is not 0
+bak 7, m5
+
+# Go forward 7 instructions if address 50 is not 0
+fwd 7, m50
+
+out 104
+
+# This does nothing
+nop
+nop
+nop
+nop
+out 105
+out 10
+
+out 110
+out 111
+out 10
+
+# Perfom an and
+set 1 -> m1
+set 13 -> m2
+and m1, m2 -> m3
+num m3  # 1
+
+# Perform xor
+xor 12, 12 -> m5
+num m5  # 0
+
+# Perform not
+not 87 -> m10
+num m10   # 0
+
+not 0 -> m10
+num m10   # 1
+
+
+# Exit with this return code
+bye 0
