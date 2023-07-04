@@ -607,11 +607,25 @@ fn main() -> Result<(), String> {
         None => return Err("Please provide a filename as an argument".to_owned()),
     };
 
-    for i in instructions {
-        println!("{}", i);
+    // Idk what the user is doing but whatever
+    if instructions.is_empty() {
+        return Ok(());
     }
 
     let mut memory: [Wrapping<u8>; 255] = [Wrapping(0u8); 255];
 
-    Ok(())
+    while match instructions.get(memory[0].0 as usize).expect("Should have at least one instruction") { Instruction::Bye{..} => false, _ => true } {
+    
+        memory[0] += 1;
+    }
+
+    match instructions.get(memory[0].0 as usize).expect("Should have at least one instruction") {
+        Instruction::Bye{code} => std::process::exit(
+            match code {
+                Value::Literal { val } => *val as i32,
+                Value::Memory { addr } => memory[*addr as usize].0 as i32,
+            }
+        ),
+        _ => unreachable!(),
+    }
 }
