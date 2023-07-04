@@ -85,10 +85,10 @@ out 97  # 'a'
 xor m1, m2 -> m10
 
 fwd 3, m10
-out 61  # '='   # 1
+out 33  # '!'   # 1
 
 fwd 2, 0        # 2
-out 33  # '!'   # 3  1
+out 61  # '='   # 3  1
 
 out 61  # '='   #    2
 
@@ -173,7 +173,7 @@ out m1     # i
 
 ### bak
 Like `jz` in x86 assembly. It moves back the number of instructions given by
-the first value, if the second value is not equal to 0.
+the first value, if the second value is equal to 0.
 
 ```sick
 set 10 -> m1
@@ -248,10 +248,10 @@ cin -> m4
 # Take in a number from stdin, save to address 5
 nin -> m5
 
-# Go back 7 instructions if address 5 is not 0
+# Go back 7 instructions if address 5 is 0
 bak 7, m5
 
-# Go forward 7 instructions if address 50 is not 0
+# Go forward 7 instructions if address 50 is 0
 fwd 7, m50
 
 out 104
