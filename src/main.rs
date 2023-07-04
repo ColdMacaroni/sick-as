@@ -7,7 +7,7 @@ use nom::{
 use std::num::Wrapping;
 use std::{env, fmt::Display, fs};
 /*
-* Instructions:
+* Instructions: (where a is any and m is memory)
 * set a, -> m
 * add a, a -> m
 * sub a, a -> m
@@ -17,6 +17,7 @@ use std::{env, fmt::Display, fs};
 * nin -> m
 * bak a, a
 * fwd a, a
+* bye a
 */
 
 #[derive(Debug)]
@@ -70,6 +71,9 @@ enum Instruction {
         count: Value,
         check: Value,
     },
+    Bye {
+        code: Value,
+    },
     Nop,
 }
 
@@ -89,6 +93,7 @@ impl Display for Instruction {
             Instruction::Nin { tgt } => write!(f, "nin -> {}", tgt),
             Instruction::Bak { count, check } => write!(f, "bak {}, {}", count, check),
             Instruction::Fwd { count, check } => write!(f, "fwd {}, {}", count, check),
+            Instruction::Bye { code } => write!(f, "bye {}", code),
             Instruction::Nop => write!(f, "nop"),
         }
     }
@@ -392,6 +397,34 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 check: match is_mem_check {
                     Some(_) => Value::Memory { addr: check },
                     None => Value::Literal { val: check },
+                },
+            }
+        }
+
+        "bye" => {
+            let (input, (is_mem, src, _)) = match tuple((opt(&mem), &num, opt(&space)))(input) {
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `bye` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `bye`, incomplete data.".to_owned())
+                }
+            };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
+
+            let src = str_to_u8(src)?;
+
+            Instruction::Bye {
+                code: match is_mem {
+                    Some(_) => Value::Memory { addr: src },
+                    None => Value::Literal { val: src },
                 },
             }
         }
