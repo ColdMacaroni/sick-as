@@ -128,8 +128,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
 
     let inst = match name {
         "set" => {
-            let (_input, (is_mem, src, _, _, tgt)) =
-                match tuple((opt(&mem), &num, arrow, &mem, &num))(input) {
+            let (input, (is_mem, src, _, _, tgt, _)) =
+                match tuple((opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
                     Ok(val) => val,
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -142,6 +142,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                         return Err("Error while parsing `set`, incomplete data.".to_owned())
                     }
                 };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
             let src = str_to_u8(src)?;
             let tgt = str_to_u8(tgt)?;
 
@@ -154,8 +157,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "add" => {
-            let (_input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num))(input) {
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
                     Ok(val) => val,
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -168,6 +171,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                         return Err("Error while parsing `add`, incomplete data.".to_owned())
                     }
                 };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
             let tgt = str_to_u8(tgt)?;
@@ -185,8 +191,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "sub" => {
-            let (_input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num))(input) {
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
                     Ok(val) => val,
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -199,6 +205,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                         return Err("Error while parsing `sub`, incomplete data.".to_owned())
                     }
                 };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
             let tgt = str_to_u8(tgt)?;
@@ -216,7 +225,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "out" => {
-            let (_input, (is_mem, src)) = match tuple((opt(&mem), &num))(input) {
+            let (input, (is_mem, src, _)) = match tuple((opt(&mem), &num, opt(&space)))(input) {
                 Ok(val) => val,
                 Err(nom::Err::Error(nom::error::Error { input, .. }))
                 | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -229,6 +238,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     return Err("Error while parsing `out`, incomplete data.".to_owned())
                 }
             };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let src = str_to_u8(src)?;
 
@@ -240,7 +252,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "num" => {
-            let (_input, (is_mem, src)) = match tuple((opt(&mem), &num))(input) {
+            let (input, (is_mem, src, _)) = match tuple((opt(&mem), &num, opt(&space)))(input) {
                 Ok(val) => val,
                 Err(nom::Err::Error(nom::error::Error { input, .. }))
                 | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -253,6 +265,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     return Err("Error while parsing `num`, incomplete data.".to_owned())
                 }
             };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let src = str_to_u8(src)?;
 
@@ -264,7 +279,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "cin" => {
-            let (_input, (_, _, addr)) = match tuple((arrow, &mem, &num))(input) {
+            let (input, (_, _, addr, _)) = match tuple((arrow, &mem, &num, opt(&space)))(input) {
                 Ok(val) => val,
                 Err(nom::Err::Error(nom::error::Error { input, .. }))
                 | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -277,6 +292,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     return Err("Error while parsing `cin`, incomplete data.".to_owned())
                 }
             };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let addr = str_to_u8(addr)?;
 
@@ -285,7 +303,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "nin" => {
-            let (_input, (_, _, addr)) = match tuple((arrow, &mem, &num))(input) {
+            let (input, (_, _, addr, _)) = match tuple((arrow, &mem, &num, opt(&space)))(input) {
                 Ok(val) => val,
                 Err(nom::Err::Error(nom::error::Error { input, .. }))
                 | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -298,6 +316,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     return Err("Error while parsing `nin`, incomplete data.".to_owned())
                 }
             };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let addr = str_to_u8(addr)?;
 
@@ -306,8 +327,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "bak" => {
-            let (_input, (is_mem_count, count, _, is_mem_check, check)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num))(input) {
+            let (input, (is_mem_count, count, _, is_mem_check, check, _)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, opt(&space)))(input) {
                     Ok(val) => val,
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -320,6 +341,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                         return Err("Error while parsing `bak`, incomplete data.".to_owned())
                     }
                 };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let count = str_to_u8(count)?;
             let check = str_to_u8(check)?;
@@ -337,8 +361,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
         }
 
         "fwd" => {
-            let (_input, (is_mem_count, count, _, is_mem_check, check)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num))(input) {
+            let (input, (is_mem_count, count, _, is_mem_check, check, _)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, opt(&space)))(input) {
                     Ok(val) => val,
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -351,6 +375,9 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                         return Err("Error while parsing `fwd`, incomplete data.".to_owned())
                     }
                 };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
 
             let count = str_to_u8(count)?;
             let check = str_to_u8(check)?;
