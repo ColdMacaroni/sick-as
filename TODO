@@ -1,0 +1,3 @@
+- The parser and maybe implementation should be moved to a lib.rs so it can be properly tested.
+- Memory visualisation. (Debug mode) (ncurses?)
+- Some of the proposed instructions.
