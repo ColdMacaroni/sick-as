@@ -136,7 +136,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     Err(nom::Err::Error(nom::error::Error { input, .. }))
                     | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
                         return Err(format!(
-                            "Error while parsing set instruction near `{}`",
+                            "Error while parsing `set` instruction near `{}`",
                             input
                         ))
                     }
