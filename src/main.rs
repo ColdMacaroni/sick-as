@@ -4,7 +4,7 @@ use nom::{
     combinator::opt,
     sequence::tuple,
 };
-use std::num::Wrapping;
+use std::{num::Wrapping, io::{Read, Write}};
 use std::{env, fmt::Display, fs};
 /*
 * Instructions: (where a is any and m is memory)
@@ -661,19 +661,90 @@ fn main() -> Result<(), String> {
 
     let mut memory: [Wrapping<u8>; 255] = [Wrapping(0u8); 255];
 
+    // Little macro to grab a value from memory, or as a literal.
+    // It means i can just use this on all the spots.
+    macro_rules! get_val {
+        ($mem:expr, $val:expr) => {
+            {
+                match $val {
+                    Value::Literal {val} => *val,
+                    Value::Memory {addr} => $mem[*addr as usize].0,
+
+                }
+            }            
+        };
+    }
+
+    macro_rules! get_addr {
+        ($val:expr) => {
+            {
+                // The parser should ensure this
+                match $val {
+                    Value::Memory {addr} => *addr,
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
+
     while match instructions
         .get(memory[0].0 as usize)
-        .expect("Should have at least one instruction")
+        .expect("Instruction pointer should remain valid")
     {
         Instruction::Bye { .. } => false,
         _ => true,
     } {
+        match instructions
+        .get(memory[0].0 as usize)
+        .expect("Instruction pointer should remain valid") {
+            // Sets memory
+            Instruction::Set { src, tgt } => memory[get_addr!(tgt) as usize] = Wrapping(get_val!(memory, src)),
+            // Bitwise and
+            Instruction::And { left, right, tgt } => memory[get_addr!(tgt) as usize] = Wrapping(get_val!(memory, left) & get_val!(memory, right)),
+            // Bitwise xor
+            Instruction::Xor { left, right, tgt } => memory[get_addr!(tgt) as usize] = Wrapping(get_val!(memory, left) ^ get_val!(memory, right)),
+            // Boolean not
+            Instruction::Not { src, tgt } => memory[get_addr!(tgt) as usize] = if get_val!(memory, src) == 0 {Wrapping(1)} else {Wrapping(0)},
+            // Add left + right
+            Instruction::Add { left, right, tgt } => memory[get_addr!(tgt) as usize] = Wrapping(get_val!(memory, left) + get_val!(memory, right)),
+            // Substract left - right
+            Instruction::Sub { left, right, tgt } => memory[get_addr!(tgt) as usize] = Wrapping(get_val!(memory, left) - get_val!(memory, right)),
+            // Print out as a character
+            Instruction::Out { src } => {
+                print!("{}", get_val!(memory, src) as char);
+                std::io::stdout().flush().expect("IO errror");
+            },
+            // Print out as a number
+            Instruction::Num { src } => {
+                print!("{}", get_val!(memory, src));
+                std::io::stdout().flush().expect("IO errror");
+            },
+            // Take in a character
+            Instruction::Cin { tgt } => memory[get_addr!(tgt) as usize] = if let Some(val) = std::io::stdin().bytes().next() {
+                    Wrapping(val.expect("IO error"))
+                
+            } else {
+                return Err("EOF while reading input".to_owned())
+            },
+            // Take in a number
+            Instruction::Nin { tgt } => memory[get_addr!(tgt) as usize] = match {let mut buf = String::new(); std::io::stdin()
+                    .read_line(&mut buf).expect("IO error"); buf.trim().parse::<u8>()}{Ok(val)=>Wrapping(val), Err(_) => return Err("Invalid unsigned 8-bit integer".to_owned())},
+            // Skip backward
+            Instruction::Bak { count, check } => if get_val!(memory, check) == 0 {memory[0] -= get_val!(memory, count); continue},
+            // Skip forward
+            Instruction::Fwd { count, check } => if get_val!(memory, check) == 0 {memory[0] += get_val!(memory, count); continue},
+            // Should be caught in the while's condition
+            Instruction::Bye { .. } => unreachable!(),
+            // No operation
+            Instruction::Nop => {},
+        };
+
         memory[0] += 1;
     }
 
     match instructions
         .get(memory[0].0 as usize)
-        .expect("Should have at least one instruction")
+        .expect("Instruction pointer should remain valid")
     {
         Instruction::Bye { code } => std::process::exit(match code {
             Value::Literal { val } => *val as i32,
