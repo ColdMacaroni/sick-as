@@ -70,6 +70,7 @@ enum Instruction {
         count: Value,
         check: Value,
     },
+    Nop,
 }
 
 impl Display for Instruction {
@@ -88,6 +89,7 @@ impl Display for Instruction {
             Instruction::Nin { tgt } => write!(f, "nin -> {}", tgt),
             Instruction::Bak { count, check } => write!(f, "bak {}, {}", count, check),
             Instruction::Fwd { count, check } => write!(f, "fwd {}, {}", count, check),
+            Instruction::Nop => write!(f, "nop"),
         }
     }
 }
@@ -115,7 +117,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
     // Matches an arrow with any number of spaces on either side
     let arrow = tuple((opt(&space), tag("->"), opt(&space)));
 
-    let (input, (name, _)) = match tuple((word, &space))(input) {
+    let (input, (name, _)) = match tuple((word, opt(&space)))(input) {
         Ok(val) => val,
         Err(nom::Err::Error(nom::error::Error { input, .. }))
         | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
@@ -392,6 +394,28 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     None => Value::Literal { val: check },
                 },
             }
+        }
+
+        "nop" => {
+            let (input, _) = match opt(&space)(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error { input, .. }))
+                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                        return Err(format!(
+                            "Error while parsing `nop` instruction near `{}`",
+                            input
+                        ))
+                    }
+                    Err(nom::Err::Incomplete(_)) => {
+                        return Err("Error while parsing `nop`, incomplete data.".to_owned())
+                    }
+                };
+            if !input.is_empty() {
+                return Err(format!("Unexpected characters: `{}`", input))
+            }
+
+            Instruction::Nop
+
         }
 
         _ => return Err(format!("Unknown instruction `{name}`")),
