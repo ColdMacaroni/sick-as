@@ -73,12 +73,12 @@ impl Display for Instruction {
         match self {
             Instruction::Set { src, tgt } => write!(f, "set {} -> {}", src, tgt),
             Instruction::Add { left, right, tgt } => write!(f, "add {}, {} -> {}", left, right, tgt),
-            Instruction::Sub { left, right, tgt } => todo!(),
-            Instruction::Out { src } => todo!(),
-            Instruction::Num { src } => todo!(),
-            Instruction::Cin { tgt } => todo!(),
-            Instruction::Nin { tgt } => todo!(),
-            Instruction::Bak { count, check } => todo!(),
+            Instruction::Sub { left, right, tgt } => write!(f, "sub {}, {} -> {}", left, right, tgt),
+            Instruction::Out { src } => write!(f, "out {}", src),
+            Instruction::Num { src } => write!(f, "num {}", src),
+            Instruction::Cin { tgt } => write!(f, "cin -> {}", tgt),
+            Instruction::Nin { tgt } => write!(f, "nin -> {}", tgt),
+            Instruction::Bak { count, check } => write!(f, "bak {}, {}", count, check),
         }
     }
 }
