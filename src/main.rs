@@ -86,7 +86,7 @@ impl Display for Instruction {
 /// Little convenience function for converting strs into u8s and being able to use a ?
 #[inline]
 fn str_to_u8(s: &str) -> Result<u8, &'static str> {
-    match u8::from_str_radix(s, 10) {
+    match s.parse::<u8>() {
         Ok(val) => Ok(val),
         Err(_) => Err("Error parsing integer"),
     }
@@ -175,12 +175,12 @@ fn get_instructions(path: &str) -> Result<Vec<Instruction>, String> {
     let mut instructions = Vec::new();
 
     if let Ok(content) = fs::read_to_string(path) {
-        for (idx, line) in content.split("\n").enumerate() {
+        for (idx, line) in content.split('\n').enumerate() {
             // Let's ignore comments
             if let Some('#') = line.chars().next() {
                 continue;
             }
-            if line.len() == 0 {
+            if line.is_empty() {
                 continue;
             };
 
@@ -198,8 +198,7 @@ fn get_instructions(path: &str) -> Result<Vec<Instruction>, String> {
 
 fn main() -> Result<(), String> {
     // Get instructions first
-    // Skip this filename
-    let instructions = match env::args().skip(1).next() {
+    let instructions = match env::args().nth(1) {
         Some(file) => match get_instructions(&file) {
             Ok(insts) => insts,
             Err(msg) => return Err(msg),
