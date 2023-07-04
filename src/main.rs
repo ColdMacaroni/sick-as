@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::{env, fmt::Display, fs};
-
+use std::num::Wrapping;
 use nom::{
     bytes::complete::{tag, take_while1},
     character::{complete::char, is_alphabetic, is_digit},
@@ -210,7 +210,7 @@ fn main() -> Result<(), String> {
         println!("{}", i);
     }
 
-    let mut memory: [u8; 255] = [0; 255];
+    let mut memory: [Wrapping<u8>; 255] = [Wrapping(0u8); 255];
 
     Ok(())
 }
