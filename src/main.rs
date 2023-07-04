@@ -93,17 +93,23 @@ fn str_to_u8(s: &str) -> Result<u8, &'static str> {
 }
 
 fn parse_instruction(input: &str) -> Result<Instruction, String> {
+    // Matches any alpha word
     let word = take_while1(|c: char| is_alphabetic(c as u8));
+    // Matches any series of numbers
     let num = take_while1(|c: char| is_digit(c as u8));
+    // Matches just 'm'
     let mem = char::<&str, nom::error::Error<&str>>('m');
+    // Matches any number of spaces
     let space = take_while1(|c| c == ' ');
+    // Matches a comma with any number of spaces on either side
     let sep = tuple((opt(&space), char(','), opt(&space)));
+    // Matches an arrow with any number of spaces on either side
     let arrow = tuple((opt(&space), tag("->"), opt(&space)));
 
-    // let (input, (name, _, _, has_mem, num)) = tuple((word, space, mem, num, space, mem, num))(input)?;
     let (input, (name, _)) = match tuple((word, &space))(input) {
         Ok(val) => val,
-        Err(e) => return Err(format!("Could not find valid instruction name: `{:?}`", e.source())),
+        Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Not a valid instruction name: `{}`", input)),
+        Err(nom::Err::Incomplete(_)) => return Err("Error while parsing instruction name, incomplete data.".to_owned()),
     };
 
     let inst = match name {
@@ -111,7 +117,8 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             let (_input, (is_mem, src, _, _, tgt)) =
                 match tuple((opt(&mem), &num, arrow, &mem, &num))(input) {
                     Ok(val) => val,
-                    Err(e) => return Err(format!("Error while parsing set instruction near `{:?}`", e.source())),
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing set instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `set`, incomplete data.".to_owned()),
                 };
             let src = str_to_u8(src)?;
             let tgt = str_to_u8(tgt)?;
@@ -126,9 +133,10 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
         }
         "add" => {
             let (_input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num ))(input) {
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num))(input) {
                     Ok(val) => val,
-                    Err(e) => return Err(format!("Error while parsing add instruction near `{:?}`", e.source())),
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `add` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `add`, incomplete data.".to_owned()),
                 };
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
@@ -147,22 +155,111 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "sub" => {
-            todo!()
+            let (_input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `sub` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `sub`, incomplete data.".to_owned()),
+                };
+            let src_l = str_to_u8(src_l)?;
+            let src_r = str_to_u8(src_r)?;
+            let tgt = str_to_u8(tgt)?;
+
+            Instruction::Sub {
+                left: match is_mem_l {
+                    Some(_) => Value::Memory { addr: src_l },
+                    None => Value::Literal { val: src_l },
+                },
+                right: match is_mem_r {
+                    Some(_) => Value::Memory { addr: src_r },
+                    None => Value::Literal { val: src_r },
+                },
+                tgt: Value::Memory { addr: tgt },
+            }
         }
         "out" => {
-            todo!()
+            let (_input, (is_mem, src)) = 
+                match tuple((opt(&mem), &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `out` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `out`, incomplete data.".to_owned()),
+                };
+
+            let src = str_to_u8(src)?;
+            
+            Instruction::Out {
+                src: match is_mem {
+                    Some(_) => Value::Memory { addr: src },
+                    None => Value::Literal{ val: src }
+                }
+            }
         }
         "num" => {
-            todo!()
+            let (_input, (is_mem, src)) = 
+                match tuple((opt(&mem), &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `num` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `num`, incomplete data.".to_owned()),
+                };
+
+            let src = str_to_u8(src)?;
+            
+            Instruction::Num {
+                src: match is_mem {
+                    Some(_) => Value::Memory { addr: src },
+                    None => Value::Literal{ val: src }
+                }
+            }
         }
         "cin" => {
-            todo!()
+            let (_input, (_, _, addr)) = 
+                match tuple((arrow, &mem, &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `cin` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `cin`, incomplete data.".to_owned()),
+                };
+
+            let addr = str_to_u8(addr)?;
+            
+            Instruction::Cin {
+                tgt: Value::Memory { addr }
+            }
         }
         "nin" => {
-            todo!()
+            let (_input, (_, _, addr)) = 
+                match tuple((arrow, &mem, &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `nin` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `nin`, incomplete data.".to_owned()),
+                };
+
+            let addr = str_to_u8(addr)?;
+            
+            Instruction::Nin {
+                tgt: Value::Memory { addr }
+            }
         }
         "bak" => {
-            todo!()
+            let (_input, (is_mem_count, count, _, is_mem_check, check)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `bak` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `bak`, incomplete data.".to_owned()),
+                };
+
+            let count = str_to_u8(count)?;
+            let check = str_to_u8(check)?;
+
+            Instruction::Bak {
+                count: match is_mem_count {
+                    Some(_) => Value::Memory { addr: count },
+                    None => Value::Literal { val: count },
+                },
+                check: match is_mem_check {
+                    Some(_) => Value::Memory { addr: check },
+                    None => Value::Literal { val: check },
+                },
+            }
         }
 
         _ => return Err(format!("Unknown instruction `{name}`")),
