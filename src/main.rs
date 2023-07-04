@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::{env, fmt::Display, fs};
 use std::num::Wrapping;
 use nom::{
@@ -17,6 +16,7 @@ use nom::{
 * cin -> m
 * nin -> m
 * bak a, a
+* fwd a, a
 */
 
 #[derive(Debug)]
@@ -66,6 +66,10 @@ enum Instruction {
         count: Value,
         check: Value,
     },
+    Fwd {
+        count: Value,
+        check: Value,
+    },
 }
 
 impl Display for Instruction {
@@ -79,6 +83,7 @@ impl Display for Instruction {
             Instruction::Cin { tgt } => write!(f, "cin -> {}", tgt),
             Instruction::Nin { tgt } => write!(f, "nin -> {}", tgt),
             Instruction::Bak { count, check } => write!(f, "bak {}, {}", count, check),
+            Instruction::Fwd { count, check } => write!(f, "fwd {}, {}", count, check),
         }
     }
 }
@@ -251,6 +256,29 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             let check = str_to_u8(check)?;
 
             Instruction::Bak {
+                count: match is_mem_count {
+                    Some(_) => Value::Memory { addr: count },
+                    None => Value::Literal { val: count },
+                },
+                check: match is_mem_check {
+                    Some(_) => Value::Memory { addr: check },
+                    None => Value::Literal { val: check },
+                },
+            }
+        }
+
+        "fwd" => {
+            let (_input, (is_mem_count, count, _, is_mem_check, check)) =
+                match tuple((opt(&mem), &num, sep, opt(&mem), &num))(input) {
+                    Ok(val) => val,
+                    Err(nom::Err::Error(nom::error::Error {input, ..})) | Err(nom::Err::Failure(nom::error::Error {input, ..})) => return Err(format!("Error while parsing `fwd` instruction near `{}`", input)),
+                    Err(nom::Err::Incomplete(_)) => return Err("Error while parsing `fwd`, incomplete data.".to_owned()),
+                };
+
+            let count = str_to_u8(count)?;
+            let check = str_to_u8(check)?;
+
+            Instruction::Fwd {
                 count: match is_mem_count {
                     Some(_) => Value::Memory { addr: count },
                     None => Value::Literal { val: count },
