@@ -108,8 +108,12 @@ impl Display for Instruction {
             Instruction::Bak { count, check } => write!(f, "bak {}, {}", count, check),
             Instruction::Fwd { count, check } => write!(f, "fwd {}, {}", count, check),
             Instruction::Bye { code } => write!(f, "bye {}", code),
-            Instruction::And { left, right, tgt } => write!(f, "and {}, {} -> {}", left, right, tgt),
-            Instruction::Xor { left, right, tgt } => write!(f, "xor {}, {} -> {}", left, right, tgt),
+            Instruction::And { left, right, tgt } => {
+                write!(f, "and {}, {} -> {}", left, right, tgt)
+            }
+            Instruction::Xor { left, right, tgt } => {
+                write!(f, "xor {}, {} -> {}", left, right, tgt)
+            }
             Instruction::Not { src, tgt } => write!(f, "not {} -> {}", src, tgt),
             Instruction::Nop => write!(f, "nop"),
         }
@@ -167,7 +171,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     }
                 };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src = str_to_u8(src)?;
             let tgt = str_to_u8(tgt)?;
@@ -182,22 +186,33 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
         }
 
         "and" => {
-            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
-                    Ok(val) => val,
-                    Err(nom::Err::Error(nom::error::Error { input, .. }))
-                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
-                        return Err(format!(
-                            "Error while parsing `and` instruction near `{}`",
-                            input
-                        ))
-                    }
-                    Err(nom::Err::Incomplete(_)) => {
-                        return Err("Error while parsing `and` incomplete data.".to_owned())
-                    }
-                };
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) = match tuple((
+                opt(&mem),
+                &num,
+                sep,
+                opt(&mem),
+                &num,
+                arrow,
+                &mem,
+                &num,
+                opt(&space),
+            ))(
+                input
+            ) {
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `and` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `and` incomplete data.".to_owned())
+                }
+            };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
@@ -231,7 +246,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     }
                 };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src = str_to_u8(src)?;
             let tgt = str_to_u8(tgt)?;
@@ -245,22 +260,33 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "xor" => {
-            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
-                    Ok(val) => val,
-                    Err(nom::Err::Error(nom::error::Error { input, .. }))
-                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
-                        return Err(format!(
-                            "Error while parsing `xor` instruction near `{}`",
-                            input
-                        ))
-                    }
-                    Err(nom::Err::Incomplete(_)) => {
-                        return Err("Error while parsing `xor`, incomplete data.".to_owned())
-                    }
-                };
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) = match tuple((
+                opt(&mem),
+                &num,
+                sep,
+                opt(&mem),
+                &num,
+                arrow,
+                &mem,
+                &num,
+                opt(&space),
+            ))(
+                input
+            ) {
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `xor` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `xor`, incomplete data.".to_owned())
+                }
+            };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
@@ -279,22 +305,33 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "add" => {
-            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
-                    Ok(val) => val,
-                    Err(nom::Err::Error(nom::error::Error { input, .. }))
-                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
-                        return Err(format!(
-                            "Error while parsing `add` instruction near `{}`",
-                            input
-                        ))
-                    }
-                    Err(nom::Err::Incomplete(_)) => {
-                        return Err("Error while parsing `add`, incomplete data.".to_owned())
-                    }
-                };
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) = match tuple((
+                opt(&mem),
+                &num,
+                sep,
+                opt(&mem),
+                &num,
+                arrow,
+                &mem,
+                &num,
+                opt(&space),
+            ))(
+                input
+            ) {
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `add` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `add`, incomplete data.".to_owned())
+                }
+            };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
@@ -313,22 +350,33 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
             }
         }
         "sub" => {
-            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) =
-                match tuple((opt(&mem), &num, sep, opt(&mem), &num, arrow, &mem, &num, opt(&space)))(input) {
-                    Ok(val) => val,
-                    Err(nom::Err::Error(nom::error::Error { input, .. }))
-                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
-                        return Err(format!(
-                            "Error while parsing `sub` instruction near `{}`",
-                            input
-                        ))
-                    }
-                    Err(nom::Err::Incomplete(_)) => {
-                        return Err("Error while parsing `sub`, incomplete data.".to_owned())
-                    }
-                };
+            let (input, (is_mem_l, src_l, _, is_mem_r, src_r, _, _, tgt, _)) = match tuple((
+                opt(&mem),
+                &num,
+                sep,
+                opt(&mem),
+                &num,
+                arrow,
+                &mem,
+                &num,
+                opt(&space),
+            ))(
+                input
+            ) {
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `sub` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `sub`, incomplete data.".to_owned())
+                }
+            };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
             let src_l = str_to_u8(src_l)?;
             let src_r = str_to_u8(src_r)?;
@@ -361,7 +409,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 }
             };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let src = str_to_u8(src)?;
@@ -388,7 +436,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 }
             };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let src = str_to_u8(src)?;
@@ -415,7 +463,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 }
             };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let addr = str_to_u8(addr)?;
@@ -439,7 +487,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 }
             };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let addr = str_to_u8(addr)?;
@@ -464,7 +512,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     }
                 };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let count = str_to_u8(count)?;
@@ -498,7 +546,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                     }
                 };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let count = str_to_u8(count)?;
@@ -531,7 +579,7 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
                 }
             };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             let src = str_to_u8(src)?;
@@ -546,24 +594,23 @@ fn parse_instruction(input: &str) -> Result<Instruction, String> {
 
         "nop" => {
             let (input, _) = match opt(&space)(input) {
-                    Ok(val) => val,
-                    Err(nom::Err::Error(nom::error::Error { input, .. }))
-                    | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
-                        return Err(format!(
-                            "Error while parsing `nop` instruction near `{}`",
-                            input
-                        ))
-                    }
-                    Err(nom::Err::Incomplete(_)) => {
-                        return Err("Error while parsing `nop`, incomplete data.".to_owned())
-                    }
-                };
+                Ok(val) => val,
+                Err(nom::Err::Error(nom::error::Error { input, .. }))
+                | Err(nom::Err::Failure(nom::error::Error { input, .. })) => {
+                    return Err(format!(
+                        "Error while parsing `nop` instruction near `{}`",
+                        input
+                    ))
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    return Err("Error while parsing `nop`, incomplete data.".to_owned())
+                }
+            };
             if !input.is_empty() {
-                return Err(format!("Unexpected characters: `{}`", input))
+                return Err(format!("Unexpected characters: `{}`", input));
             }
 
             Instruction::Nop
-
         }
 
         _ => return Err(format!("Unknown instruction `{name}`")),
@@ -614,18 +661,24 @@ fn main() -> Result<(), String> {
 
     let mut memory: [Wrapping<u8>; 255] = [Wrapping(0u8); 255];
 
-    while match instructions.get(memory[0].0 as usize).expect("Should have at least one instruction") { Instruction::Bye{..} => false, _ => true } {
-    
+    while match instructions
+        .get(memory[0].0 as usize)
+        .expect("Should have at least one instruction")
+    {
+        Instruction::Bye { .. } => false,
+        _ => true,
+    } {
         memory[0] += 1;
     }
 
-    match instructions.get(memory[0].0 as usize).expect("Should have at least one instruction") {
-        Instruction::Bye{code} => std::process::exit(
-            match code {
-                Value::Literal { val } => *val as i32,
-                Value::Memory { addr } => memory[*addr as usize].0 as i32,
-            }
-        ),
+    match instructions
+        .get(memory[0].0 as usize)
+        .expect("Should have at least one instruction")
+    {
+        Instruction::Bye { code } => std::process::exit(match code {
+            Value::Literal { val } => *val as i32,
+            Value::Memory { addr } => memory[*addr as usize].0 as i32,
+        }),
         _ => unreachable!(),
     }
 }
